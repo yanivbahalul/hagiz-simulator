@@ -25,20 +25,21 @@ app.use('/images', express.static(IMAGES_DIR));
 function loadImages() {
   return fs.readdirSync(IMAGES_DIR)
     .filter(f => !f.startsWith(ANSWERED_CORRECT_PREFIX) && !f.startsWith(ANSWERED_WRONG_PREFIX))
-    .map(f => ({ filename: f, birthtime: fs.statSync(path.join(IMAGES_DIR, f)).birthtime }))
-    .sort((a, b) => a.birthtime - b.birthtime)
-    .map(f => f.filename);
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); // Sort by filename
 }
+
+
 
 // Group images into sets of 7
 function groupImagesIntoQuestions(sortedFilenames) {
   const groups = [];
-  for (let i = 0; i < sortedFilenames.length; i += TOTAL_IMAGES_PER_SET) {
+  for (let i = 0; i <= sortedFilenames.length - TOTAL_IMAGES_PER_SET; i += TOTAL_IMAGES_PER_SET) {
     const chunk = sortedFilenames.slice(i, i + TOTAL_IMAGES_PER_SET);
-    if (chunk.length === TOTAL_IMAGES_PER_SET) groups.push(chunk);
+    groups.push(chunk);
   }
   return groups;
 }
+
 
 // Load images initially
 let allImages = loadImages();
