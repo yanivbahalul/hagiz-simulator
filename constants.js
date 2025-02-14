@@ -1,4 +1,3 @@
-// constants.js
 const path = require('path');
 
 // Base images directory

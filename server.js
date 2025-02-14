@@ -44,22 +44,37 @@ function groupImagesIntoQuestions(sortedFilenames) {
 let allImages = loadImages();
 let questionSets = groupImagesIntoQuestions(allImages);
 
-// GET /api/random-question
+// GET /api/random-question (Fixed)
 app.get('/api/random-question', (req, res) => {
-  if (questionSets.length === 0) return res.status(500).json({ error: 'No question sets available' });
-
-  const set = questionSets[Math.floor(Math.random() * questionSets.length)];
-  const answers = [{ filename: set[CORRECT_ANSWER_INDEX], isCorrect: true },
-                   ...set.slice(WRONG_ANSWERS_START_INDEX).map(f => ({ filename: f, isCorrect: false }))];
-
-  // Shuffle answers
-  for (let i = answers.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [answers[i], answers[j]] = [answers[j], answers[i]];
+  if (questionSets.length === 0) {
+      return res.status(500).json({ error: 'No question sets available' });
   }
 
-  res.json({ question: set[QUESTION_INDEX], answers });
+  // Select a random question set
+  const set = questionSets[Math.floor(Math.random() * questionSets.length)];
+
+  // Ensure the first image in the set is the question
+  const questionImage = set[QUESTION_INDEX];
+
+  // Ensure the correct answer is always the second image
+  const correctAnswer = set[CORRECT_ANSWER_INDEX];
+
+  // Get the wrong answers (remaining images)
+  const wrongAnswers = set.slice(WRONG_ANSWERS_START_INDEX);
+
+  // Prepare the answers array
+  let answers = [{ filename: correctAnswer, isCorrect: true },
+                 ...wrongAnswers.map(f => ({ filename: f, isCorrect: false }))];
+
+  // Shuffle the answers
+  for (let i = answers.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [answers[i], answers[j]] = [answers[j], answers[i]];
+  }
+
+  res.json({ question: questionImage, answers });
 });
+
 
 // POST /api/answer (Rename files)
 app.post('/api/answer', (req, res) => {
@@ -104,6 +119,15 @@ app.get('/api/reset-images', (req, res) => {
   allImages = loadImages();
   questionSets = groupImagesIntoQuestions(allImages);
   res.json({ message: 'Reset successful', totalImages: allImages.length, totalSets: questionSets.length });
+});
+
+// GET /api/rescan-images (Reload all available images from "images/" folder)
+app.get('/api/rescan-images', (req, res) => {
+  allImages = loadImages();  // Reload images
+  questionSets = groupImagesIntoQuestions(allImages); // Recreate question sets
+
+  console.log(`📂 Rescanned: ${allImages.length} images -> ${questionSets.length} sets.`);
+  res.json({ message: 'Images reloaded successfully.', totalImages: allImages.length, totalQuestionSets: questionSets.length });
 });
 
 // Start server
