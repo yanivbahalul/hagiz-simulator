@@ -2,13 +2,12 @@ const questionImageEl = document.getElementById('question-image');
 const answersContainer = document.getElementById('answers-container');
 const rescanBtn = document.getElementById('rescan-btn');
 const resetBtn = document.getElementById('reset-btn');
-const nextBtn = document.getElementById('next-btn'); // ✅ NEW: Next Question button
-const rescanStatus = document.getElementById('rescan-status');
-
-const enlargeImgEl = document.getElementById('enlargeImg'); // For modal
+const settingsBtn = document.getElementById('settings-btn');
+const nextBtn = document.getElementById('next-btn');
+const enlargeImgEl = document.getElementById('enlargeImg');
 
 let hasAnswered = false;
-let currentQuestion = null; // Store current question filename
+let currentQuestion = null;
 
 /**
  * Load a random question from the server
@@ -25,12 +24,10 @@ async function loadRandomQuestion() {
 
         if (data.error) {
             questionImageEl.alt = 'No questions available';
-            rescanStatus.textContent = 'No more questions available!';
             return;
         }
 
         currentQuestion = data.question;
-        console.log(`Loading question image: /images/${currentQuestion}`);
         questionImageEl.src = `/images/${currentQuestion}`;
 
         // Build the answer blocks
@@ -49,7 +46,6 @@ async function loadRandomQuestion() {
             const overlay = document.createElement('div');
             overlay.classList.add('answer-overlay');
 
-            // "Choose" button
             const chooseBtn = document.createElement('button');
             chooseBtn.textContent = 'Choose';
             chooseBtn.classList.add('btn', 'btn-primary', 'choose-btn');
@@ -58,7 +54,6 @@ async function loadRandomQuestion() {
                 if (!hasAnswered) handleChooseAnswer(block);
             });
 
-            // "Enlarge" button
             const enlargeBtn = document.createElement('button');
             enlargeBtn.textContent = 'Enlarge';
             enlargeBtn.classList.add('btn', 'btn-secondary', 'enlarge-btn');
@@ -76,7 +71,6 @@ async function loadRandomQuestion() {
 
     } catch (err) {
         console.error('Error loading question:', err);
-        rescanStatus.textContent = 'Error loading question.';
     }
 }
 
@@ -88,44 +82,23 @@ async function handleChooseAnswer(answerBlock) {
     const chosenFile = answerBlock.dataset.filename;
     const isCorrect = (answerBlock.dataset.isCorrect === 'true');
 
-    // Highlight correct answer in green
     document.querySelectorAll('.answer-block').forEach((blk) => {
         if (blk.dataset.isCorrect === 'true') {
             blk.classList.add('answer-correct');
         }
     });
 
-    // Highlight wrong answer in red if incorrect
     if (!isCorrect) {
         answerBlock.classList.add('answer-wrong');
     }
 
-    // Send answer to server to rename files
     try {
-        const response = await fetch('/api/answer', {
+        await fetch('/api/answer', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                question: currentQuestion,
-                chosen: chosenFile
-            })
+            body: JSON.stringify({ question: currentQuestion, chosen: chosenFile })
         });
 
-        const result = await response.json();
-
-        if (result.error) {
-            console.error('Error submitting answer:', result.error);
-            rescanStatus.textContent = `Error: ${result.error}`;
-            return;
-        }
-
-        if (result.isCorrect) {
-            rescanStatus.textContent = '✅ Correct! Images renamed with ANSWERED_CORRECT_ prefix.';
-        } else {
-            rescanStatus.textContent = '❌ Wrong! Images renamed with ANSWERED_WRONG_ prefix.';
-        }
-
-        // Enable next question button
         nextBtn.disabled = false;
 
     } catch (err) {
@@ -138,9 +111,7 @@ async function handleChooseAnswer(answerBlock) {
  */
 function handleEnlargeImage(filename) {
     enlargeImgEl.src = `/images/${filename}`;
-    const myModal = new bootstrap.Modal(document.getElementById('enlargeModal'), {
-        keyboard: true
-    });
+    const myModal = new bootstrap.Modal(document.getElementById('enlargeModal'), { keyboard: true });
     myModal.show();
 }
 
@@ -149,15 +120,10 @@ function handleEnlargeImage(filename) {
  */
 async function rescanImages() {
     try {
-        const response = await fetch('/api/rescan-images');
-        const data = await response.json();
-        if (data.message) {
-            rescanStatus.textContent = `Rescanned: ${data.totalImages} images -> ${data.totalQuestionSets} sets.`;
-        }
+        await fetch('/api/rescan-images');
         loadRandomQuestion();
     } catch (err) {
         console.error('Error rescanning:', err);
-        rescanStatus.textContent = 'Error rescanning images.';
     }
 }
 
@@ -165,16 +131,14 @@ async function rescanImages() {
  * Reset folders (remove ANSWERED_ prefix from all answered images)
  */
 async function resetFolders() {
+    const confirmReset = confirm("⚠️ Are you sure you want to reset answered questions? This action cannot be undone.");
+    if (!confirmReset) return; // Exit if user cancels
+
     try {
-        const response = await fetch('/api/reset-images');
-        const data = await response.json();
-        if (data.message) {
-            rescanStatus.textContent = `Reset done: ${data.totalImages} images -> ${data.totalSets} sets.`;
-        }
+        await fetch('/api/reset-images');
         loadRandomQuestion();
     } catch (err) {
         console.error('Error resetting folders:', err);
-        rescanStatus.textContent = 'Error resetting folders.';
     }
 }
 
@@ -188,6 +152,12 @@ function nextQuestion() {
 // Event Listeners
 if (rescanBtn) rescanBtn.addEventListener('click', rescanImages);
 if (resetBtn) resetBtn.addEventListener('click', resetFolders);
+if (settingsBtn) {
+    settingsBtn.addEventListener('click', () => {
+        const settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
+        settingsModal.show();
+    });
+}
 if (nextBtn) nextBtn.addEventListener('click', nextQuestion);
 
 // Load first question on page load
