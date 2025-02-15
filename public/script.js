@@ -1,17 +1,19 @@
+// Get references to key DOM elements
 const questionImageEl = document.getElementById('question-image');
 const answersContainer = document.getElementById('answers-container');
 const rescanBtn = document.getElementById('rescan-btn');
 const resetBtn = document.getElementById('reset-btn');
-const nextBtn = document.getElementById('next-btn'); // ✅ NEW: Next Question button
-const rescanStatus = document.getElementById('rescan-status');
+const nextBtn = document.getElementById('next-btn');
+const settingsBtn = document.getElementById('settings-btn');
 
-const enlargeImgEl = document.getElementById('enlargeImg'); // For modal
+const enlargeImgEl = document.getElementById('enlargeImg');
+const enlargeModal = new bootstrap.Modal(document.getElementById('enlargeModal'));
 
 let hasAnswered = false;
-let currentQuestion = null; // Store current question filename
+let currentQuestion = null;
 
 /**
- * Load a random question from the server
+ * Fetches and displays a new random question from the server.
  */
 async function loadRandomQuestion() {
     hasAnswered = false;
@@ -25,171 +27,146 @@ async function loadRandomQuestion() {
 
         if (data.error) {
             questionImageEl.alt = 'No questions available';
-            rescanStatus.textContent = 'No more questions available!';
             return;
         }
 
         currentQuestion = data.question;
-        console.log(`Loading question image: /images/${currentQuestion}`);
         questionImageEl.src = `/images/${currentQuestion}`;
 
-        // Build the answer blocks
-        data.answers.forEach((answerObj) => {
-            const block = document.createElement('div');
-            block.classList.add('answer-block');
-            block.dataset.filename = answerObj.filename;
-            block.dataset.isCorrect = answerObj.isCorrect;
+        // Ensure no duplicate overlays exist
+        document.querySelectorAll('.hover-overlay').forEach(el => el.remove());
 
-            const img = document.createElement('img');
-            img.src = `/images/${answerObj.filename}`;
-            img.alt = "Answer Image";
-            img.classList.add("answer-image");
+        // Add an "Enlarge" button for the question image
+        addEnlargeButton(document.querySelector('.question-container'), `/images/${currentQuestion}`);
 
-            // Hover overlay with "Choose" and "Enlarge" buttons
-            const overlay = document.createElement('div');
-            overlay.classList.add('answer-overlay');
-
-            // "Choose" button
-            const chooseBtn = document.createElement('button');
-            chooseBtn.textContent = 'Choose';
-            chooseBtn.classList.add('btn', 'btn-primary', 'choose-btn');
-            chooseBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (!hasAnswered) handleChooseAnswer(block);
-            });
-
-            // "Enlarge" button
-            const enlargeBtn = document.createElement('button');
-            enlargeBtn.textContent = 'Enlarge';
-            enlargeBtn.classList.add('btn', 'btn-secondary', 'enlarge-btn');
-            enlargeBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                handleEnlargeImage(answerObj.filename);
-            });
-
-            overlay.appendChild(chooseBtn);
-            overlay.appendChild(enlargeBtn);
-            block.appendChild(img);
-            block.appendChild(overlay);
-            answersContainer.appendChild(block);
-        });
+        // Populate answers dynamically
+        data.answers.forEach(answerObj => createAnswerBlock(answerObj));
 
     } catch (err) {
         console.error('Error loading question:', err);
-        rescanStatus.textContent = 'Error loading question.';
     }
 }
 
 /**
- * Handle user selecting an answer
+ * Creates an answer block with selection and enlargement options.
+ * @param {Object} answerObj - Contains the filename and correctness of the answer.
+ */
+function createAnswerBlock(answerObj) {
+    const block = document.createElement('div');
+    block.classList.add('answer-block');
+    block.dataset.filename = answerObj.filename;
+    block.dataset.isCorrect = answerObj.isCorrect;
+
+    const img = document.createElement('img');
+    img.src = `/images/${answerObj.filename}`;
+    img.alt = "Answer Image";
+
+    // Hover overlay for "Choose" and "Enlarge" buttons
+    const overlay = document.createElement('div');
+    overlay.classList.add('answer-overlay');
+
+    const chooseBtn = document.createElement('button');
+    chooseBtn.classList.add('btn', 'btn-primary');
+    chooseBtn.textContent = 'Choose';
+    chooseBtn.onclick = (e) => {
+        e.stopPropagation(); // Prevents clicking "Choose" from also triggering "Enlarge"
+        if (!hasAnswered) handleChooseAnswer(block);
+    };
+
+    const enlargeBtn = document.createElement('button');
+    enlargeBtn.classList.add('btn', 'btn-secondary');
+    enlargeBtn.textContent = '🔍';
+    enlargeBtn.onclick = (e) => {
+        e.stopPropagation(); // Prevents bubbling up to answer selection
+        handleEnlargeImage(`/images/${answerObj.filename}`);
+    };
+
+    overlay.appendChild(chooseBtn);
+    overlay.appendChild(enlargeBtn);
+    block.appendChild(img);
+    block.appendChild(overlay);
+    block.onclick = (e) => {
+        e.stopPropagation();
+        if (!hasAnswered) handleChooseAnswer(block);
+    };
+
+    answersContainer.appendChild(block);
+}
+
+/**
+ * Handles user answer selection and provides visual feedback.
+ * @param {HTMLElement} answerBlock - The answer block element selected by the user.
  */
 async function handleChooseAnswer(answerBlock) {
+    if (hasAnswered) return;
     hasAnswered = true;
+
     const chosenFile = answerBlock.dataset.filename;
-    const isCorrect = (answerBlock.dataset.isCorrect === 'true');
+    const isCorrect = answerBlock.dataset.isCorrect === 'true';
 
-    // Highlight correct answer in green
-    document.querySelectorAll('.answer-block').forEach((blk) => {
+    document.querySelectorAll('.answer-block').forEach(blk => {
         if (blk.dataset.isCorrect === 'true') {
-            blk.classList.add('answer-correct');
+            blk.classList.add('answer-correct'); // Correct answer turns green
         }
     });
 
-    // Highlight wrong answer in red if incorrect
     if (!isCorrect) {
-        answerBlock.classList.add('answer-wrong');
+        answerBlock.classList.add('answer-wrong'); // Only the selected wrong answer turns red
     }
 
-    // Send answer to server to rename files
-    try {
-        const response = await fetch('/api/answer', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                question: currentQuestion,
-                chosen: chosenFile
-            })
-        });
-
-        const result = await response.json();
-
-        if (result.error) {
-            console.error('Error submitting answer:', result.error);
-            rescanStatus.textContent = `Error: ${result.error}`;
-            return;
-        }
-
-        if (result.isCorrect) {
-            rescanStatus.textContent = '✅ Correct! Images renamed with ANSWERED_CORRECT_ prefix.';
-        } else {
-            rescanStatus.textContent = '❌ Wrong! Images renamed with ANSWERED_WRONG_ prefix.';
-        }
-
-        // Enable next question button
-        nextBtn.disabled = false;
-
-    } catch (err) {
-        console.error('Error calling /api/answer:', err);
-    }
-}
-
-/**
- * Enlarge an image in Bootstrap modal
- */
-function handleEnlargeImage(filename) {
-    enlargeImgEl.src = `/images/${filename}`;
-    const myModal = new bootstrap.Modal(document.getElementById('enlargeModal'), {
-        keyboard: true
+    await fetch('/api/answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: currentQuestion, chosen: chosenFile })
     });
-    myModal.show();
 }
 
 /**
- * Rescan images
+ * Enlarges the clicked image inside a Bootstrap modal.
+ * @param {string} src - The image URL to display in the modal.
  */
-async function rescanImages() {
-    try {
-        const response = await fetch('/api/rescan-images');
-        const data = await response.json();
-        if (data.message) {
-            rescanStatus.textContent = `Rescanned: ${data.totalImages} images -> ${data.totalQuestionSets} sets.`;
-        }
-        loadRandomQuestion();
-    } catch (err) {
-        console.error('Error rescanning:', err);
-        rescanStatus.textContent = 'Error rescanning images.';
+function handleEnlargeImage(src) {
+    enlargeImgEl.src = src;
+    enlargeModal.show();
+}
+
+/**
+ * Adds an "Enlarge" button overlay on top of an element.
+ * @param {HTMLElement} container - The element to append the enlarge button to.
+ * @param {string} imageUrl - The image URL that should be enlarged.
+ */
+function addEnlargeButton(container, imageUrl) {
+    if (!container.querySelector('.hover-overlay')) {
+        const overlay = document.createElement('div');
+        overlay.classList.add('hover-overlay');
+
+        const enlargeBtn = document.createElement('button');
+        enlargeBtn.classList.add('btn', 'btn-secondary');
+        enlargeBtn.textContent = '🔍';
+        enlargeBtn.onclick = (e) => {
+            e.stopPropagation();
+            handleEnlargeImage(imageUrl);
+        };
+
+        overlay.appendChild(enlargeBtn);
+        container.appendChild(overlay);
     }
 }
 
-/**
- * Reset folders (remove ANSWERED_ prefix from all answered images)
- */
-async function resetFolders() {
-    try {
-        const response = await fetch('/api/reset-images');
-        const data = await response.json();
-        if (data.message) {
-            rescanStatus.textContent = `Reset done: ${data.totalImages} images -> ${data.totalSets} sets.`;
-        }
-        loadRandomQuestion();
-    } catch (err) {
-        console.error('Error resetting folders:', err);
-        rescanStatus.textContent = 'Error resetting folders.';
+// Confirmation before resetting answered questions
+resetBtn.addEventListener('click', () => {
+    if (confirm('Are you sure you want to reset all answered questions? This action cannot be undone.')) {
+        fetch('/api/reset-images').then(() => loadRandomQuestion());
     }
-}
-
-/**
- * Load next question without affecting answered images
- */
-function nextQuestion() {
-    nextBtn.disabled = true;
-    loadRandomQuestion();
-}
+});
 
 // Event Listeners
-if (rescanBtn) rescanBtn.addEventListener('click', rescanImages);
-if (resetBtn) resetBtn.addEventListener('click', resetFolders);
-if (nextBtn) nextBtn.addEventListener('click', nextQuestion);
+settingsBtn.addEventListener('click', () => new bootstrap.Modal(document.getElementById('settingsModal')).show());
+rescanBtn.addEventListener('click', () => fetch('/api/rescan-images').then(() => loadRandomQuestion()));
+nextBtn.addEventListener('click', loadRandomQuestion);
 
-// Load first question on page load
+// Ensure "Next Question" is always enabled
+nextBtn.disabled = false;
+
+// Load first question on startup
 window.addEventListener('DOMContentLoaded', loadRandomQuestion);
