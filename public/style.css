@@ -1,13 +1,31 @@
 /* General Page Styles */
 html, body {
     height: 100%;
-    margin: 0;
-    overflow: hidden;
     display: flex;
+    margin: 0;
     flex-direction: column;
     background-color: #ffffff;  /* White background */
     color: black; /* Black text */
   }
+
+/* Import Omnes-Bold font */
+@font-face {
+    font-family: "Omnes-Bold";
+    src: url("https://db.onlinewebfonts.com/t/4f6e7e23becd1fb9388871d961026dad.eot");
+    src: url("https://db.onlinewebfonts.com/t/4f6e7e23becd1fb9388871d961026dad.eot?#iefix") format("embedded-opentype"),
+         url("https://db.onlinewebfonts.com/t/4f6e7e23becd1fb9388871d961026dad.woff2") format("woff2"),
+         url("https://db.onlinewebfonts.com/t/4f6e7e23becd1fb9388871d961026dad.woff") format("woff"),
+         url("https://db.onlinewebfonts.com/t/4f6e7e23becd1fb9388871d961026dad.ttf") format("truetype"),
+         url("https://db.onlinewebfonts.com/t/4f6e7e23becd1fb9388871d961026dad.svg#Omnes-Bold") format("svg");
+}
+
+/* Apply Omnes-Bold font only to the title */
+#hagiz-title {
+    font-family: "Omnes-Bold", sans-serif;
+    font-size: 2.5rem;
+    text-align: center;
+    margin-top: 20px;
+}
 
 
   /* Quiz Container */
