@@ -182,7 +182,6 @@ async function resetFolders() {
  * Load next question without affecting answered images
  */
 function nextQuestion() {
-    nextBtn.disabled = true;
     loadRandomQuestion();
 }
 
