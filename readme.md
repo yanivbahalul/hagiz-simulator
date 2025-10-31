@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="LOGO.png" alt="HAGIZ Simulator Logo" width="400" style="margin-bottom: 10px;" />
+<img src="LOGO.png?v=2" alt="HAGIZ Simulator Logo" width="400" style="margin-bottom: 10px;" />
 
 **סימולטור אינטראקטיבי לתרגול בחינות במבוא למערכות מחשב**
 
