@@ -61,13 +61,13 @@
 <tr>
 <td align="center">
 <img src="https://github.com/shaico111.png" width="100px;" alt="Shai Cohen"/><br/>
-<b>שי כהן (Shai Cohen)</b><br/>
+<b>Shai Cohen</b><br/>
 <a href="https://github.com/shaico111">@shaico111</a><br/>
 <sub>💡 יוצר הפרויקט המקורי</sub>
 </td>
 <td align="center">
 <img src="https://github.com/yanivbahalul.png" width="100px;" alt="Yaniv Bahalul"/><br/>
-<b>יניב בהלול (Yaniv Bahalul)</b><br/>
+<b>Yaniv Bahalul</b><br/>
 <a href="https://github.com/yanivbahalul">@yanivbahalul</a><br/>
 <sub>🚀 פיתוח ופריסה</sub>
 </td>
