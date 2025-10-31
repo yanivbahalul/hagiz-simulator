@@ -67,7 +67,7 @@
 </td>
 <td align="center">
 <img src="https://github.com/yanivbahalul.png" width="100px;" alt="Yaniv Bahalul"/><br/>
-<b>יניב בחלול (Yaniv Bahalul)</b><br/>
+<b>יניב בהלול (Yaniv Bahalul)</b><br/>
 <a href="https://github.com/yanivbahalul">@yanivbahalul</a><br/>
 <sub>🚀 פיתוח ופריסה</sub>
 </td>
