@@ -1,3 +1,5 @@
+<div dir="rtl" align="right">
+
 # 🎓 Hagiz Simulator
 
 <div align="center">
@@ -28,26 +30,26 @@
 
 ## ✨ תכונות המערכת
 
-<table>
+<table dir="rtl">
 <tr>
-<td align="center">🎲</td>
 <td><b>בחירה אקראית</b><br/>כל שאלה נבחרת באקראי, כך שכל תרגול שונה מהקודם</td>
+<td align="center">🎲</td>
 </tr>
 <tr>
-<td align="center">✅</td>
 <td><b>מעקב אחרי התקדמות</b><br/>המערכת זוכרת אילו שאלות כבר עניתי עליהן</td>
+<td align="center">✅</td>
 </tr>
 <tr>
-<td align="center">🖼️</td>
 <td><b>שאלות מבחינות אמיתיות</b><br/>כל השאלות לקוחות מבחינות קודמות של הקורס</td>
+<td align="center">🖼️</td>
 </tr>
 <tr>
-<td align="center">🎨</td>
 <td><b>ממשק נוח וידידותי</b><br/>עיצוב נקי ורספונסיבי שעובד מצוין בכל מכשיר</td>
+<td align="center">🎨</td>
 </tr>
 <tr>
-<td align="center">🔄</td>
 <td><b>איפוס מהיר</b><br/>אפשר לאפס את כל השאלות ולהתחיל מחדש בלחיצה אחת</td>
+<td align="center">🔄</td>
 </tr>
 </table>
 
@@ -96,17 +98,17 @@ YYYYMMDD-שם_השאלה-06.png
 
 ## 👏 תודות מיוחדות
 
-<table>
+<table dir="rtl">
 <tr>
 <td align="center">
 <img src="https://github.com/shaico111.png" width="100px;" alt="Shai Cohen"/><br/>
-<b>Shai Cohen</b><br/>
+<b>שי כהן (Shai Cohen)</b><br/>
 <a href="https://github.com/shaico111">@shaico111</a><br/>
 <sub>💡 יוצר הפרויקט המקורי</sub>
 </td>
 <td align="center">
 <img src="https://github.com/yanivbahalul.png" width="100px;" alt="Yaniv Bahalul"/><br/>
-<b>Yaniv Bahalul</b><br/>
+<b>יניב בחלול (Yaniv Bahalul)</b><br/>
 <a href="https://github.com/yanivbahalul">@yanivbahalul</a><br/>
 <sub>🚀 פיתוח ופריסה</sub>
 </td>
@@ -136,5 +138,7 @@ YYYYMMDD-שם_השאלה-06.png
 
 **Fork המקור:** [shaico111/hagiz-simulator](https://github.com/shaico111/hagiz-simulator)  
 **גרסה זו:** [yanivbahalul/hagiz-simulator](https://github.com/yanivbahalul/hagiz-simulator)
+
+</div>
 
 </div>
