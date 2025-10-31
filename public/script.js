@@ -1,16 +1,48 @@
 // Get references to key DOM elements
 const questionImageEl = document.getElementById('question-image');
 const answersContainer = document.getElementById('answers-container');
-const rescanBtn = document.getElementById('rescan-btn');
-const resetBtn = document.getElementById('reset-btn');
 const nextBtn = document.getElementById('next-btn');
-const settingsBtn = document.getElementById('settings-btn');
 
 const enlargeImgEl = document.getElementById('enlargeImg');
 const enlargeModal = new bootstrap.Modal(document.getElementById('enlargeModal'));
 
 let hasAnswered = false;
 let currentQuestion = null;
+let totalQuestions = 0;
+
+// Track recently asked questions to improve randomness (keep last 20)
+const MAX_RECENT_QUESTIONS = 20;
+
+/**
+ * Get recently asked questions from localStorage
+ */
+function getRecentQuestions() {
+    try {
+        const recent = localStorage.getItem('recentQuestions');
+        return recent ? JSON.parse(recent) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+/**
+ * Add question to recent questions list
+ */
+function addToRecentQuestions(questionFilename) {
+    let recent = getRecentQuestions();
+    recent.unshift(questionFilename);
+    
+    // Keep only last MAX_RECENT_QUESTIONS
+    if (recent.length > MAX_RECENT_QUESTIONS) {
+        recent = recent.slice(0, MAX_RECENT_QUESTIONS);
+    }
+    
+    try {
+        localStorage.setItem('recentQuestions', JSON.stringify(recent));
+    } catch (e) {
+        console.warn('Failed to save recent questions:', e);
+    }
+}
 
 /**
  * Fetches and displays a new random question from the server.
@@ -20,9 +52,16 @@ async function loadRandomQuestion() {
     currentQuestion = null;
     answersContainer.innerHTML = '';
     questionImageEl.src = '';
+    nextBtn.disabled = true;
 
     try {
-        const response = await fetch('/api/random-question');
+        // Send recent questions to server for better randomness
+        const recentQuestions = getRecentQuestions();
+        const queryParam = recentQuestions.length > 0 
+            ? `?recent=${encodeURIComponent(JSON.stringify(recentQuestions))}` 
+            : '';
+        
+        const response = await fetch(`/api/random-question${queryParam}`);
         const data = await response.json();
 
         if (data.error) {
@@ -31,7 +70,11 @@ async function loadRandomQuestion() {
         }
 
         currentQuestion = data.question;
+        totalQuestions = data.totalQuestions || 0;
         questionImageEl.src = `/images/${currentQuestion}`;
+
+        // Add this question to recent questions
+        addToRecentQuestions(currentQuestion);
 
         // Ensure no duplicate overlays exist
         document.querySelectorAll('.hover-overlay').forEach(el => el.remove());
@@ -67,9 +110,9 @@ function createAnswerBlock(answerObj) {
 
     const chooseBtn = document.createElement('button');
     chooseBtn.classList.add('btn', 'btn-primary');
-    chooseBtn.textContent = 'Choose';
+    chooseBtn.textContent = 'בחר';
     chooseBtn.onclick = (e) => {
-        e.stopPropagation(); // Prevents clicking "Choose" from also triggering "Enlarge"
+        e.stopPropagation();
         if (!hasAnswered) handleChooseAnswer(block);
     };
 
@@ -77,7 +120,7 @@ function createAnswerBlock(answerObj) {
     enlargeBtn.classList.add('btn', 'btn-secondary');
     enlargeBtn.textContent = '🔍';
     enlargeBtn.onclick = (e) => {
-        e.stopPropagation(); // Prevents bubbling up to answer selection
+        e.stopPropagation();
         handleEnlargeImage(`/images/${answerObj.filename}`);
     };
 
@@ -97,28 +140,26 @@ function createAnswerBlock(answerObj) {
  * Handles user answer selection and provides visual feedback.
  * @param {HTMLElement} answerBlock - The answer block element selected by the user.
  */
-async function handleChooseAnswer(answerBlock) {
+function handleChooseAnswer(answerBlock) {
     if (hasAnswered) return;
     hasAnswered = true;
 
-    const chosenFile = answerBlock.dataset.filename;
     const isCorrect = answerBlock.dataset.isCorrect === 'true';
 
+    // Show correct answers in green
     document.querySelectorAll('.answer-block').forEach(blk => {
         if (blk.dataset.isCorrect === 'true') {
-            blk.classList.add('answer-correct'); // Correct answer turns green
+            blk.classList.add('answer-correct');
         }
     });
 
+    // Show wrong answer in red if user was incorrect
     if (!isCorrect) {
-        answerBlock.classList.add('answer-wrong'); // Only the selected wrong answer turns red
+        answerBlock.classList.add('answer-wrong');
     }
 
-    await fetch('/api/answer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: currentQuestion, chosen: chosenFile })
-    });
+    // Enable next button
+    nextBtn.disabled = false;
 }
 
 /**
@@ -153,20 +194,8 @@ function addEnlargeButton(container, imageUrl) {
     }
 }
 
-// Confirmation before resetting answered questions
-resetBtn.addEventListener('click', () => {
-    if (confirm('Are you sure you want to reset all answered questions? This action cannot be undone.')) {
-        fetch('/api/reset-images').then(() => loadRandomQuestion());
-    }
-});
-
 // Event Listeners
-settingsBtn.addEventListener('click', () => new bootstrap.Modal(document.getElementById('settingsModal')).show());
-rescanBtn.addEventListener('click', () => fetch('/api/rescan-images').then(() => loadRandomQuestion()));
 nextBtn.addEventListener('click', loadRandomQuestion);
-
-// Ensure "Next Question" is always enabled
-nextBtn.disabled = false;
 
 // Load first question on startup
 window.addEventListener('DOMContentLoaded', loadRandomQuestion);

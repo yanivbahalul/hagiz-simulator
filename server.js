@@ -5,8 +5,6 @@ const fs = require('fs');
 const cors = require('cors');
 const {
   IMAGES_DIR,
-  ANSWERED_CORRECT_PREFIX,
-  ANSWERED_WRONG_PREFIX,
   QUESTION_INDEX,
   CORRECT_ANSWER_INDEX,
   WRONG_ANSWERS_START_INDEX,
@@ -21,14 +19,12 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/images', express.static(IMAGES_DIR));
 
-// Function to load images, ignoring answered ones
+// Function to load all images
 function loadImages() {
   return fs.readdirSync(IMAGES_DIR)
-    .filter(f => !f.startsWith(ANSWERED_CORRECT_PREFIX) && !f.startsWith(ANSWERED_WRONG_PREFIX))
-    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); // Sort by filename
+    .filter(f => f.endsWith('.png'))
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 }
-
-
 
 // Group images into sets of 7
 function groupImagesIntoQuestions(sortedFilenames) {
@@ -40,95 +36,64 @@ function groupImagesIntoQuestions(sortedFilenames) {
   return groups;
 }
 
-
 // Load images initially
 let allImages = loadImages();
 let questionSets = groupImagesIntoQuestions(allImages);
 
-// GET /api/random-question (Fixed)
+console.log(`📚 Loaded ${questionSets.length} question sets from ${allImages.length} images`);
+
+// GET /api/random-question - Always returns a random question from all available
 app.get('/api/random-question', (req, res) => {
   if (questionSets.length === 0) {
-      return res.status(500).json({ error: 'No question sets available' });
+    return res.status(500).json({ error: 'No question sets available' });
+  }
+
+  // Get recently asked questions from query parameter (sent by client)
+  const recentQuestions = req.query.recent ? JSON.parse(req.query.recent) : [];
+  
+  // Filter out recently asked questions for better variety
+  let availableSets = questionSets;
+  if (recentQuestions.length > 0 && questionSets.length > 10) {
+    availableSets = questionSets.filter(set => !recentQuestions.includes(set[QUESTION_INDEX]));
+    // If we filtered out too many, use all questions
+    if (availableSets.length === 0) {
+      availableSets = questionSets;
+    }
   }
 
   // Select a random question set
-  const set = questionSets[Math.floor(Math.random() * questionSets.length)];
+  const set = availableSets[Math.floor(Math.random() * availableSets.length)];
 
-  // Ensure the first image in the set is the question
+  // Get question and answers
   const questionImage = set[QUESTION_INDEX];
-
-  // Ensure the correct answer is always the second image
   const correctAnswer = set[CORRECT_ANSWER_INDEX];
-
-  // Get the wrong answers (remaining images)
   const wrongAnswers = set.slice(WRONG_ANSWERS_START_INDEX);
 
-  // Prepare the answers array
-  let answers = [{ filename: correctAnswer, isCorrect: true },
-                 ...wrongAnswers.map(f => ({ filename: f, isCorrect: false }))];
+  // Prepare and shuffle answers
+  let answers = [
+    { filename: correctAnswer, isCorrect: true },
+    ...wrongAnswers.map(f => ({ filename: f, isCorrect: false }))
+  ];
 
   // Shuffle the answers
   for (let i = answers.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [answers[i], answers[j]] = [answers[j], answers[i]];
+    const j = Math.floor(Math.random() * (i + 1));
+    [answers[i], answers[j]] = [answers[j], answers[i]];
   }
 
-  res.json({ question: questionImage, answers });
-});
-
-
-// POST /api/answer (Rename files)
-app.post('/api/answer', (req, res) => {
-  const { question, chosen } = req.body;
-  const index = questionSets.findIndex(set => set[QUESTION_INDEX] === question);
-  if (index === -1) return res.status(404).json({ error: 'Question set not found or already answered.' });
-
-  const set = questionSets[index];
-  const isCorrect = chosen === set[CORRECT_ANSWER_INDEX];
-
-  // Rename each file in the set
-  set.forEach(file => {
-    const oldPath = path.join(IMAGES_DIR, file);
-    const newPrefix = isCorrect ? ANSWERED_CORRECT_PREFIX : ANSWERED_WRONG_PREFIX;
-    const newPath = path.join(IMAGES_DIR, `${newPrefix}${file}`);
-
-    try {
-      fs.renameSync(oldPath, newPath);
-    } catch (err) {
-      console.error(`Failed to rename ${file}:`, err);
-    }
+  res.json({ 
+    question: questionImage, 
+    answers,
+    totalQuestions: questionSets.length 
   });
-
-  questionSets.splice(index, 1);
-  res.json({ message: 'Answer recorded successfully', isCorrect });
 });
 
-// GET /api/reset-images (Remove prefix from all answered images)
-app.get('/api/reset-images', (req, res) => {
-  fs.readdirSync(IMAGES_DIR).forEach(file => {
-    if (file.startsWith(ANSWERED_CORRECT_PREFIX) || file.startsWith(ANSWERED_WRONG_PREFIX)) {
-      const oldPath = path.join(IMAGES_DIR, file);
-      const newPath = path.join(IMAGES_DIR, file.replace(ANSWERED_CORRECT_PREFIX, "").replace(ANSWERED_WRONG_PREFIX, ""));
-      try {
-        fs.renameSync(oldPath, newPath);
-      } catch (err) {
-        console.error(`Failed to rename ${file}:`, err);
-      }
-    }
+// GET /api/stats - Get total number of questions
+app.get('/api/stats', (req, res) => {
+  res.json({ 
+    totalQuestions: questionSets.length,
+    totalImages: allImages.length
   });
-
-  allImages = loadImages();
-  questionSets = groupImagesIntoQuestions(allImages);
-  res.json({ message: 'Reset successful', totalImages: allImages.length, totalSets: questionSets.length });
-});
-
-// GET /api/rescan-images (Reload all available images from "images/" folder)
-app.get('/api/rescan-images', (req, res) => {
-  allImages = loadImages();  // Reload images
-  questionSets = groupImagesIntoQuestions(allImages); // Recreate question sets
-
-  console.log(`📂 Rescanned: ${allImages.length} images -> ${questionSets.length} sets.`);
-  res.json({ message: 'Images reloaded successfully.', totalImages: allImages.length, totalQuestionSets: questionSets.length });
 });
 
 // Start server
