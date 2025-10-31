@@ -1,8 +1,8 @@
 <div dir="rtl" align="right">
 
-# 🎓 Hagiz Simulator
-
 <div align="center">
+
+<img src="LOGO.png" alt="HAGIZ Simulator Logo" width="400" />
 
 **סימולטור אינטראקטיבי לתרגול בחינות במבוא למערכות מחשב**
 
