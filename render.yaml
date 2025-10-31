@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: hagiz-simulator
+    env: docker
+    region: frankfurt  # או singapore/oregon לפי העדפה
+    plan: free  # ניתן לשנות ל-starter או professional
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+    # Render ישתמש ב-PORT מהסביבה שלו אוטומטית
+    # Auto-deploy מ-Git
+    autoDeploy: true
+

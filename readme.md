@@ -8,6 +8,58 @@ Hagiz Simulator is a web-based quiz tool designed to help students **train for t
 ✅ Supports bulk image-based questions  
 ✅ Answer validation and renaming system  
 ✅ Easy to add more questions  
+✅ Docker support for easy deployment  
+✅ Ready for Render deployment  
+
+---
+
+## 🚀 Deployment to Render
+
+### Quick Deploy (Recommended)
+1. Push your code to GitHub/GitLab
+2. Go to [Render Dashboard](https://dashboard.render.com/)
+3. Click **"New +"** → **"Web Service"**
+4. Connect your repository
+5. Render will automatically detect the `render.yaml` and `Dockerfile`
+6. Click **"Create Web Service"**
+7. Wait for deployment to complete ✅
+
+### Manual Configuration
+If automatic detection doesn't work:
+- **Environment**: Docker
+- **Build Command**: (leave empty - Docker handles it)
+- **Start Command**: (leave empty - Docker handles it)
+- **Port**: Render sets this automatically
+
+### Important Notes
+- The free tier on Render will spin down after inactivity
+- First load after inactivity may take 30-60 seconds
+- Images persist during the service lifetime
+
+---
+
+## 🐳 Docker Deployment
+
+### Build and Run with Docker
+```sh
+# Build the image
+docker build -t hagiz-simulator .
+
+# Run the container
+docker run -p 3000:3000 -v $(pwd)/images:/app/images hagiz-simulator
+```
+
+### Using Docker Compose (Recommended for Local Development)
+```sh
+# Start the application
+docker-compose up -d
+
+# Stop the application
+docker-compose down
+
+# View logs
+docker-compose logs -f
+```
 
 ---
 

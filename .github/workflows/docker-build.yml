@@ -1,0 +1,26 @@
+name: Docker Build Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Build Docker image
+      run: docker build -t hagiz-simulator .
+    
+    - name: Test Docker image
+      run: |
+        docker run -d -p 3000:3000 --name test-container hagiz-simulator
+        sleep 5
+        curl -f http://localhost:3000/ || exit 1
+        docker stop test-container
+

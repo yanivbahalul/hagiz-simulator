@@ -1,0 +1,12 @@
+# Files to ignore during Render deployment
+.git
+.gitignore
+.github
+*.md
+!README.md
+.vscode
+.idea
+.DS_Store
+*.log
+node_modules
+
