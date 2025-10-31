@@ -1,145 +1,140 @@
-# Hagiz Simulator
+# 🎓 Hagiz Simulator
 
-Hagiz Simulator is a web-based quiz tool designed to help students **train for the "Introduction to Computer Systems" final exam**. The questions are sourced from **various past exams**, allowing users to practice effectively. The tool automatically manages question sets and updates them after answering.
+<div align="center">
 
-## Features
-✅ Responsive UI with Bootstrap  
-✅ Randomized question selection  
-✅ Supports bulk image-based questions  
-✅ Answer validation and renaming system  
-✅ Easy to add more questions  
-✅ Docker support for easy deployment  
-✅ Ready for Render deployment  
+**סימולטור אינטראקטיבי לתרגול בחינות במבוא למערכות מחשב**
 
----
+### 🌐 [לחץ כאן לכניסה לאתר](https://hagiz-simulator.onrender.com)
 
-## 🚀 Deployment to Render
+[![Made with Node.js](https://img.shields.io/badge/Made%20with-Node.js-339933?style=for-the-badge&logo=node.js)](https://nodejs.org/)
+[![Deployed on Render](https://img.shields.io/badge/Deployed%20on-Render-46E3B7?style=for-the-badge&logo=render)](https://render.com)
 
-### Quick Deploy (Recommended)
-1. Push your code to GitHub/GitLab
-2. Go to [Render Dashboard](https://dashboard.render.com/)
-3. Click **"New +"** → **"Web Service"**
-4. Connect your repository
-5. Render will automatically detect the `render.yaml` and `Dockerfile`
-6. Click **"Create Web Service"**
-7. Wait for deployment to complete ✅
-
-### Manual Configuration
-If automatic detection doesn't work:
-- **Environment**: Docker
-- **Build Command**: (leave empty - Docker handles it)
-- **Start Command**: (leave empty - Docker handles it)
-- **Port**: Render sets this automatically
-
-### Important Notes
-- האפליקציה כוללת מנגנון Keep-Alive שמונע השהייה ב-Free tier
-- המנגנון שולח בקשה לעצמו כל 10 דקות כדי לשמור על השרת פעיל
-- Free tier של Render מגביל ל-750 שעות חינם לחודש
-- Images persist during the service lifetime
+</div>
 
 ---
 
-## 🐳 Docker Deployment
+## 📖 מה זה?
 
-### Build and Run with Docker
-```sh
-# Build the image
-docker build -t hagiz-simulator .
+**Hagiz Simulator** הוא כלי אינטראקטיבי לתרגול בחינות במבוא למערכות מחשב. המערכת מציגה שאלות אמיתיות מבחינות קודמות ומאפשרת לך לתרגל בצורה יעילה ומהנה.
 
-# Run the container
-docker run -p 3000:3000 -v $(pwd)/images:/app/images hagiz-simulator
+### 🎯 איך זה עובד?
+
+1. **לחץ על "שאלה חדשה"** - המערכת תציג לך שאלה אקראית מהבנק
+2. **בחר תשובה** - בחר את התשובה שנראית לך נכונה
+3. **קבל משוב מיידי** - המערכת תודיע לך אם צדקת או לא
+4. **תרגל עוד** - המערכת תעקוב אחרי השאלות שכבר עניתי עליהן
+
+---
+
+## ✨ תכונות המערכת
+
+<table>
+<tr>
+<td align="center">🎲</td>
+<td><b>בחירה אקראית</b><br/>כל שאלה נבחרת באקראי, כך שכל תרגול שונה מהקודם</td>
+</tr>
+<tr>
+<td align="center">✅</td>
+<td><b>מעקב אחרי התקדמות</b><br/>המערכת זוכרת אילו שאלות כבר עניתי עליהן</td>
+</tr>
+<tr>
+<td align="center">🖼️</td>
+<td><b>שאלות מבחינות אמיתיות</b><br/>כל השאלות לקוחות מבחינות קודמות של הקורס</td>
+</tr>
+<tr>
+<td align="center">🎨</td>
+<td><b>ממשק נוח וידידותי</b><br/>עיצוב נקי ורספונסיבי שעובד מצוין בכל מכשיר</td>
+</tr>
+<tr>
+<td align="center">🔄</td>
+<td><b>איפוס מהיר</b><br/>אפשר לאפס את כל השאלות ולהתחיל מחדש בלחיצה אחת</td>
+</tr>
+</table>
+
+---
+
+## 📚 הוספת שאלות חדשות
+
+רוצה להוסיף שאלות נוספות? זה פשוט!
+
+### 📋 כללי פורמט
+
+כל שאלה צריכה **7 תמונות בדיוק**:
+- `00` = תמונת השאלה
+- `01` = התשובה הנכונה ✅
+- `02-06` = תשובות שגויות (5 אפשרויות)
+
+### 📝 שמות קבצים
+
+השתמש בפורמט הזה:
+```
+YYYYMMDD-שם_השאלה-00.png
+YYYYMMDD-שם_השאלה-01.png
+YYYYMMDD-שם_השאלה-02.png
+...
+YYYYMMDD-שם_השאלה-06.png
 ```
 
-### Using Docker Compose (Recommended for Local Development)
-```sh
-# Start the application
-docker-compose up -d
-
-# Stop the application
-docker-compose down
-
-# View logs
-docker-compose logs -f
+**דוגמה**:
+```
+20250131-BinaryTree-00.png
+20250131-BinaryTree-01.png
+20250131-BinaryTree-02.png
+20250131-BinaryTree-03.png
+20250131-BinaryTree-04.png
+20250131-BinaryTree-05.png
+20250131-BinaryTree-06.png
 ```
 
----
+### ➕ איך להוסיף?
 
-## Installation & Running the Project
-
-### Prerequisites
-- **Windows**: Install [Node.js](https://nodejs.org/)  
-- **Mac**: Install Node.js via Homebrew:
-  ```sh
-  brew install node
-  ```
-- Ensure you have Git installed (optional, but recommended for version control).
-
-### Steps to Run Locally
-1. Clone the repository:
-   ```sh
-   git clone https://github.com/shaico111/hagiz-simulator.git
-   ```
-
-2. Navigate into the project folder:
-   ```sh
-   cd hagiz-simulator
-   ```
-
-3. Install dependencies:
-   ```sh
-   npm install
-   ```
-
-4. Start the server:
-   ```sh
-   node server.js
-   ```
-
-5. Open your browser and go to:
-   ```sh
-   http://localhost:3000
-   ```
+1. העתק את 7 התמונות לתיקיית `/images`
+2. לחץ על כפתור **"Rescan Images"** במערכת
+3. השאלה החדשה תופיע אוטומטית! 🎉
 
 ---
 
-## Adding More Questions
-### Guidelines for Adding Questions
-To maintain consistency, all questions follow a structured format:
-1. **Take Screenshots** of the question and answers **exactly as they appear** on the original form. **Do not mark answers as correct or incorrect**.
-2. **Each question must have exactly 7 images**:
-   - `00` → Question image
-   - `01` → Correct answer
-   - `02-06` → Wrong answers (or white squares if not enough options exist)
-3. **Save images in the following format**:
-   ```
-   YYYYMMDD-QuestionName-00.png
-   YYYYMMDD-QuestionName-01.png
-   YYYYMMDD-QuestionName-02.png
-   ```
-   Example:
-   ```
-   20250214-MathEquation-00.png
-   20250214-MathEquation-01.png
-   20250214-MathEquation-02.png
-   ```
+## 👏 תודות מיוחדות
 
-### Steps to Add New Questions
-1. **Place the images inside the `/images` folder**.
-2. **Rescan images** using the **"Rescan Images"** button in the UI.
-3. The system will automatically detect new questions and include them.
+<table>
+<tr>
+<td align="center">
+<img src="https://github.com/shaico111.png" width="100px;" alt="Shai Cohen"/><br/>
+<b>Shai Cohen</b><br/>
+<a href="https://github.com/shaico111">@shaico111</a><br/>
+<sub>💡 יוצר הפרויקט המקורי</sub>
+</td>
+<td align="center">
+<img src="https://github.com/yanivbahalul.png" width="100px;" alt="Yaniv Bahalul"/><br/>
+<b>Yaniv Bahalul</b><br/>
+<a href="https://github.com/yanivbahalul">@yanivbahalul</a><br/>
+<sub>🚀 פיתוח ופריסה</sub>
+</td>
+</tr>
+</table>
 
-If the rescan does not work correctly, restart the server:
-```sh
-node server.js
-```
+### 🙏 תודות נוספות
+- 💙 **מתי** - על עזרה באסיפת השאלות 📸
+- 💙 **מרדכי המרצה** - על ההדרכה והתמיכה 🎓
 
 ---
 
-## Special Thanks 🙏
-💙 **Yaniv and Mati** – for helping collect the questions 📸  
-💙 **Mordi the Lecturer** – for guidance and support 🎓  
+## 📄 רישיון
+
+הפרויקט הזה נוצר למטרות לימודיות בלבד.  
+השאלות שייכות למוסד האקדמי המקורי.
 
 ---
 
-Enjoy the tool! 🚀
+<div align="center">
 
+**בהצלחה בבחינה! 🎓✨**
+
+מקווים שהכלי עוזר לכם להצליח 💪
+
+---
+
+**Fork המקור:** [shaico111/hagiz-simulator](https://github.com/shaico111/hagiz-simulator)  
+**גרסה זו:** [yanivbahalul/hagiz-simulator](https://github.com/yanivbahalul/hagiz-simulator)
+
+</div>
