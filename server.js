@@ -133,4 +133,27 @@ app.get('/api/rescan-images', (req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+  
+  // Keep-alive mechanism for Render free tier
+  if (process.env.RENDER) {
+    const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
+    if (RENDER_URL) {
+      console.log('🔄 Keep-alive enabled for Render deployment');
+      
+      // Ping every 10 minutes to prevent cold start
+      setInterval(() => {
+        const https = require('https');
+        const http = require('http');
+        const protocol = RENDER_URL.startsWith('https') ? https : http;
+        
+        protocol.get(RENDER_URL, (res) => {
+          console.log(`✅ Keep-alive ping: ${res.statusCode}`);
+        }).on('error', (err) => {
+          console.log('⚠️ Keep-alive ping failed:', err.message);
+        });
+      }, 10 * 60 * 1000); // 10 minutes
+    }
+  }
+});

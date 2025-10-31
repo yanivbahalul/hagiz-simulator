@@ -32,8 +32,9 @@ If automatic detection doesn't work:
 - **Port**: Render sets this automatically
 
 ### Important Notes
-- The free tier on Render will spin down after inactivity
-- First load after inactivity may take 30-60 seconds
+- האפליקציה כוללת מנגנון Keep-Alive שמונע השהייה ב-Free tier
+- המנגנון שולח בקשה לעצמו כל 10 דקות כדי לשמור על השרת פעיל
+- Free tier של Render מגביל ל-750 שעות חינם לחודש
 - Images persist during the service lifetime
 
 ---

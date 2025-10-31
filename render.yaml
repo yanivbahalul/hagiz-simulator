@@ -10,7 +10,10 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: KEEP_ALIVE_ENABLED
+        value: true
     # Render ישתמש ב-PORT מהסביבה שלו אוטומטית
+    # משתני הסביבה RENDER ו-RENDER_EXTERNAL_URL מוגדרים אוטומטית על ידי Render
     # Auto-deploy מ-Git
     autoDeploy: true
 
